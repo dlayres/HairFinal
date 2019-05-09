@@ -44,7 +44,7 @@ double damp       = 0.1;
 double timeStep   = 0.0000001f;
 int counter = 0;
 
-int pointsPerStrand = 15;
+int pointsPerStrand = 5;
 
 int width       = 1024;
 int height      = 768;
@@ -94,14 +94,15 @@ void getSprings(int num) {
 
 void loadPoints() {
 	int num_strands = 12;
-	int num_particles = 15;
+	int num_particles = 5;
 
 	double strand_spacing = 0.02;
-	double particle_weight = 5.0;
+	double particle_weight = 4.0;
 
-	double spring_stiffness = 0.3;
+	double spring_stiffness = 0.05;
+
 	double particle_spacing = 0.002;
-	double spring_length = 0.00000002;
+	double spring_length = 0.0000000002;
 	double x = 0;
 	double y = 0.8;
 
