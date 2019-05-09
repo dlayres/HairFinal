@@ -20,7 +20,7 @@ Particle::Particle() {// defaults: color = white, mass = 1.0f, pos = (0, 0, 0)
   this->stationary = false;
 	this->pos = Vector(0.0f, 0.0f, 0.0f);
 	this->velocity = Vector(0.0f, 0.0f, 0.0f);
-	this->color = Vector(1.0f, 1.0f, 1.0f);
+	this->color = Vector(0.55f, 0.45f, 0.2f);
 	this->force = Vector(0.0f, 0.0f, 0.0f);
 	this->mass = 1.0f;
 }
@@ -29,7 +29,7 @@ Particle::Particle(Vector p) {
   this->stationary = false;
 	this->pos = p;
 	this->velocity = Vector(0.0f, 0.0f, 0.0f);
-	this->color = Vector(1.0f, 1.0f, 1.0f);
+	this->color = Vector(0.55f, 0.45f, 0.2f);
 	this->force = Vector(0.0f, 0.0f, 0.0f);
 	this->mass = 1.0f;
 }
@@ -40,14 +40,14 @@ Particle::Particle(Vector p, Vector c){
 	this->velocity = Vector(0.0f, 0.0f, 0.0f);
 	this->force = Vector(0.0f, 0.0f, 0.0f);
 	this->mass = 1.0f;
-	this->color = c;
+	this->color = Vector(0.55f, 0.45f, 0.2f);
 }
   
 Particle::Particle(Vector p, double m) {
   this->stationary = false;
 	this->pos = p;
 	this->velocity = Vector(0.0f, 0.0f, 0.0f);
-	this->color = Vector(1.0f, 1.0f, 1.0f);
+	this->color = Vector(0.55f, 0.45f, 0.2f);
 	this->force = Vector(0.0f, 0.0f, 0.0f);
 	this->mass = m;
 }
@@ -58,7 +58,7 @@ Particle::Particle(Vector p, Vector c, double m) {
 	this->velocity = Vector(0.0f, 0.0f, 0.0f);
 	this->force = Vector(0.0f, 0.0f, 0.0f);
 	this->mass = m;
-	this->color = c;
+	this->color = Vector(0.55f, 0.45f, 0.2f);
 }
 
 void Particle::render() {
@@ -117,11 +117,11 @@ void Particle::setVelocity(double x, double y, double z) {
 }
 
 void Particle::setColor(Vector c) {
-	this->color = c;
+	this->color = Vector(0.55f, 0.45f, 0.2f);
 }
 
 void Particle::setColor(double r, double g, double b) {
-	this->color = Vector(r, g, b);
+	this->color = Vector(0.55f, 0.45f, 0.2f);
 }
 
 void Particle::setForce(Vector f) {

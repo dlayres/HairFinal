@@ -19,12 +19,15 @@
  *   Fp-pi = -spring.k(||p - pi|| - spring.l)(p - pi)/(||p - pi||)
  * 
  */
-
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 #define _GLFW_X11
 #define _GLFW_GLX
 #define _GLFW_USE_OPENGL
 #define _GLFW_HAS_GLXGETPROCADDRESS
 #define GLFW_INCLUDE_GLU
+#include <GL/glew.h> // include GLEW to get our OpenGL 3.0+ bindings
 #include <GLFW/glfw3.h>
 
 #include "Spring.h"
@@ -38,6 +41,12 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <CSCI441/modelLoader3.hpp> // to load in OBJ models
+#include <CSCI441/objects3.hpp> // to render our 3D primitives
+#include <CSCI441/OpenGLUtils3.hpp> // to print info about OpenGL
+#include <CSCI441/ShaderProgram3.hpp> // our shader helper functions
+#include <CSCI441/TextureUtils.hpp> // our texture helper functions
 
 
 using namespace std;
@@ -54,9 +63,11 @@ bool simulation;
 double nearPlane  = 1.0f;
 double farPlane   = 1000.0f;
 double fov        = 60.0f;
-double damp       = 0.99f;
+double damp       = 0.1;
 double timeStep   = 0.000000001f;
 int counter = 0;
+
+int pointsPerStrand = 3;
 
 // glfw info
 int width       = 1024;
@@ -139,9 +150,16 @@ void readFile(string filename) {
     file >> amount;
     file >> stillParticle;
     getParticles(amount);
-    if(stillParticle >= 0) {
+    /*if(stillParticle >= 0) {
       particles[stillParticle].toggleMovement();
-    }
+	  particles[3].toggleMovement();
+	  particles[6].toggleMovement();
+	  particles[9].toggleMovement();
+    }*/
+
+		particles[0].toggleMovement();
+
+
   }
   else {
     cout << "improper particle section" << endl;
@@ -226,7 +244,7 @@ void update() {
 	for(unsigned int i = 0; i < particles.size(); i++) {
     if(!particles[i].isStationary()) {
       if(gravity) {
-        particles[i].setForce(particles[i].getForce() + Vector(0.0f, -9.81f, 0.0f) * particles[i].getMass());
+        particles[i].setForce(particles[i].getForce() + Vector(0.0f, -0.0081f, 0.0f) * particles[i].getMass());
       }
 		  particles[i].setVelocity(particles[i].getVelocity() + (particles[i].getForce() / (particles[i].getMass() * timeStep)));
       particles[i].setVelocity(particles[i].getVelocity() * damp);
@@ -235,6 +253,47 @@ void update() {
     }
 	}
 }
+
+/* my update
+void update() {
+
+
+	for (unsigned int i = 0; i < particles.size(); i++) {
+		if (!particles[i].isStationary()) {
+			//	if (gravity) {
+				//	particles[i].setForce(particles[i].getForce() + Vector(0.0f, -9.81f, 0.0f) * particles[i].getMass());
+				//}
+
+			Vector posChange = particles[i].getForce() / 5.0f;
+
+			cout << posChange.getX() << " " << posChange.getY() << " " << posChange.getZ() << endl;
+
+			particles[i].setPosition(particles[i].getPosition() + posChange);
+
+		}
+	}
+
+	for (unsigned int i = 0; i < springs.size(); i++) {
+		p1 = &particles[springs[i].getFirst()];
+		p2 = &particles[springs[i].getSecond()];
+
+		springVector = p1->getPosition() - p2->getPosition();
+		springLength = springVector.length();
+		distanceFromRest = (springLength - springs[i].getLength());
+
+		hookesValue = -springs[i].getConstant() * distanceFromRest;
+
+		// check for length of 0
+		springVector.normalize();
+
+		// calculate force
+		force = ((springVector * hookesValue));
+
+		p1->setForce(p1->getForce() + force);
+		p2->setForce(p2->getForce() - force);
+	}
+}
+*/
 
 void glhFrustumf2(float *matrix, float left, float right, float bottom, float top, float znear, float zfar) {
 	float temp, temp2, temp3, temp4;
@@ -272,7 +331,8 @@ void glhPerspectivef2(float *matrix, float fovyInDegrees, float aspectRatio,
 }
 
 void render() {
-
+	//CSCI441::drawSolidCube(5.0f);
+	
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -282,7 +342,7 @@ void render() {
 	float matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
 	
 	//gluPerspective(fov, height/width, nearPlane, farPlane);
-	glhPerspectivef2(matrix, fov, height / width, nearPlane, farPlane);
+	//glhPerspectivef2(matrix, fov, height / width, nearPlane, farPlane);
 	//glLoadMatrixf(matrix);
   //gluLookAt(camera.getX(), camera.getY(), camera.getZ(), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
@@ -294,7 +354,17 @@ void render() {
   for(unsigned int i = 0; i < springs.size(); i++) {
   	springs[i].render(particles);
   }
+
+  glPopMatrix();
+  glPushMatrix();
+
+  glTranslatef(5, 5, 5);
   
+  glColor3f(1.0f, 0.0f, 0.0f);
+  GLUquadric *quad;
+  quad = gluNewQuadric();
+  gluDisk(quad, 500000.0f, 500000.0f, 20, 20);
+
   glPopMatrix();
 
   glfwSwapBuffers(window);
@@ -302,7 +372,7 @@ void render() {
 }
 
 void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
-  if(action == GLFW_PRESS) {
+  if(action == GLFW_PRESS || action == GLFW_REPEAT) {
     if(key == GLFW_KEY_ENTER) {
       update();
     }
@@ -316,24 +386,65 @@ void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mod
       gravity = !gravity;
     }
     if(key == GLFW_KEY_DOWN) {
-      camera.setZ(camera.getZ() - 10.0f);
+		for (unsigned int i = 0; i < particles.size(); i++) {
+			if (i % pointsPerStrand == 0) {
+				Vector currPos = particles[i].getPosition();
+				Vector newPos = Vector(currPos.getX(), currPos.getY() - 0.04, currPos.getZ());
+				particles[i].setPosition(newPos);
+			}
+			else {
+				update();
+			}
+		}
     }
     if(key == GLFW_KEY_UP) {
-      camera.setZ(camera.getZ() + 10.0f);
+		for (unsigned int i = 0; i < particles.size(); i++) {
+			if (i % pointsPerStrand == 0) {
+				Vector currPos = particles[i].getPosition();
+				Vector newPos = Vector(currPos.getX(), currPos.getY() + 0.04, currPos.getZ());
+				particles[i].setPosition(newPos);
+			}
+			else {
+				update();
+			}
+		}
     }
     if(key == GLFW_KEY_LEFT) {
-      camera.setX(camera.getX() - 10.0f);
+		for (unsigned int i = 0; i < particles.size(); i++) {
+			if (i % pointsPerStrand == 0) {
+				Vector currPos = particles[i].getPosition();
+				Vector newPos = Vector(currPos.getX() - 0.04, currPos.getY(), currPos.getZ());
+				particles[i].setPosition(newPos);
+			}
+			else {
+				update();
+			}
+		}
     }
     if(key == GLFW_KEY_RIGHT) {
-      camera.setX(camera.getX() + 10.0f);
+		for (unsigned int i = 0; i < particles.size(); i++) {
+			if (i % pointsPerStrand == 0) {
+				Vector currPos = particles[i].getPosition();
+				Vector newPos = Vector(currPos.getX() + 0.04, currPos.getY(), currPos.getZ());
+				particles[i].setPosition(newPos);
+			}
+			else {
+				update();
+			}
+		}
     }
-    if(key == GLFW_KEY_P) {
-      for(unsigned int i = 0; i < springs.size(); i++) {
-        particles[springs[i].getFirst()].getPosition().print();
-        particles[springs[i].getSecond()].getPosition().print();
-      }
-    }
+	if (key == GLFW_KEY_W) {
+		for (unsigned int i = 0; i < particles.size(); i += pointsPerStrand) {
+			Vector currPos = particles[i].getPosition();
+			Vector newPos = Vector(currPos.getX(), currPos.getY(), currPos.getZ() + 0.04);
+			particles[i].setPosition(newPos);
+		}
+		// camera.setX(camera.getX() - 10.0f);
+	}
+
   }
+
+ // update();
 }
 
 int main(int argc, char **argv)

@@ -76,6 +76,8 @@ LIBS += -lSOIL3
 
 LIBS += -lfreetype
 
+LIBS += -lglu32
+
 #############################
 ## SETUP OpenGL & GLFW 
 #############################

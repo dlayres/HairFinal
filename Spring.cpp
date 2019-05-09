@@ -35,7 +35,7 @@ void Spring::render(std::vector<Particle> particles) {
 	Vector pj = particles[j].getPosition();
 
 	glBegin(GL_LINES);
-	glColor3f(1.0f, 1.0f, 1.0f);
+	glColor3f(0.55f, 0.45f, 0.2f);
 	glVertex3f(pi.getX(), pi.getY(), pi.getZ());
 	glVertex3f(pj.getX(), pj.getY(), pj.getZ());
 	glEnd();
