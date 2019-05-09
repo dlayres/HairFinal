@@ -286,6 +286,11 @@ void render() {
 }
 
 void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	bool downPressed = false;
+	bool upPressed = false;
+	bool leftPressed = false;
+	bool rightPressed = false;
+
 	if(action == GLFW_PRESS || action == GLFW_REPEAT) {
 		if(key == GLFW_KEY_ENTER) {
 		update();
@@ -300,6 +305,23 @@ void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mod
 		gravity = !gravity;
     }
     if(key == GLFW_KEY_DOWN) {
+		downPressed = true;
+		upPressed = false;
+    }
+    else if(key == GLFW_KEY_UP) {
+		upPressed = true;
+		downPressed = false;
+    }
+    if(key == GLFW_KEY_LEFT) {
+		leftPressed = true;
+		rightPressed = false;
+    }
+    else if(key == GLFW_KEY_RIGHT) {
+		rightPressed = true;
+		leftPressed = false;
+    }
+	/*
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
 		for (unsigned int i = 0; i < particles.size(); i++) {
 			if (i % pointsPerStrand == 0) {
 				Vector currPos = particles[i].getPosition();
@@ -310,8 +332,8 @@ void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mod
 				update();
 			}
 		}
-    }
-    if(key == GLFW_KEY_UP) {
+	}
+	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		for (unsigned int i = 0; i < particles.size(); i++) {
 			if (i % pointsPerStrand == 0) {
 				Vector currPos = particles[i].getPosition();
@@ -322,8 +344,8 @@ void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mod
 				update();
 			}
 		}
-    }
-    if(key == GLFW_KEY_LEFT) {
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		for (unsigned int i = 0; i < particles.size(); i++) {
 			if (i % pointsPerStrand == 0) {
 				Vector currPos = particles[i].getPosition();
@@ -334,8 +356,8 @@ void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mod
 				update();
 			}
 		}
-    }
-    if(key == GLFW_KEY_RIGHT) {
+	}
+	else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 		for (unsigned int i = 0; i < particles.size(); i++) {
 			if (i % pointsPerStrand == 0) {
 				Vector currPos = particles[i].getPosition();
@@ -346,19 +368,9 @@ void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mod
 				update();
 			}
 		}
-    }
-	if (key == GLFW_KEY_W) {
-		for (unsigned int i = 0; i < particles.size(); i += pointsPerStrand) {
-			Vector currPos = particles[i].getPosition();
-			Vector newPos = Vector(currPos.getX(), currPos.getY(), currPos.getZ() + 0.04);
-			particles[i].setPosition(newPos);
-		}
-		// camera.setX(camera.getX() - 10.0f);
-	}
+	}*/
 
   }
-
- // update();
 }
 
 int main(int argc, char **argv)
@@ -391,6 +403,55 @@ int main(int argc, char **argv)
     }
 
     render();
+
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		for (unsigned int i = 0; i < particles.size(); i++) {
+			if (i % pointsPerStrand == 0) {
+				Vector currPos = particles[i].getPosition();
+				Vector newPos = Vector(currPos.getX(), currPos.getY() - 0.01, currPos.getZ());
+				particles[i].setPosition(newPos);
+			}
+			else {
+				update();
+			}
+		}
+	}
+	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		for (unsigned int i = 0; i < particles.size(); i++) {
+			if (i % pointsPerStrand == 0) {
+				Vector currPos = particles[i].getPosition();
+				Vector newPos = Vector(currPos.getX(), currPos.getY() + 0.01, currPos.getZ());
+				particles[i].setPosition(newPos);
+			}
+			else {
+				update();
+			}
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		for (unsigned int i = 0; i < particles.size(); i++) {
+			if (i % pointsPerStrand == 0) {
+				Vector currPos = particles[i].getPosition();
+				Vector newPos = Vector(currPos.getX() - 0.01, currPos.getY(), currPos.getZ());
+				particles[i].setPosition(newPos);
+			}
+			else {
+				update();
+			}
+		}
+	}
+	else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		for (unsigned int i = 0; i < particles.size(); i++) {
+			if (i % pointsPerStrand == 0) {
+				Vector currPos = particles[i].getPosition();
+				Vector newPos = Vector(currPos.getX() + 0.01, currPos.getY(), currPos.getZ());
+				particles[i].setPosition(newPos);
+			}
+			else {
+				update();
+			}
+		}
+	}
   }
   
 	glfwDestroyWindow(window);
