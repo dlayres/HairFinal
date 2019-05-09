@@ -54,42 +54,12 @@ Vector camera;
 vector<Particle> particles;
 vector<Spring> springs;
 
-void getGravity() {
-  char input[256];
-  file >> input;
-  if(!string(input).compare(string("false"))) {
-    gravity = false;
-  }
-  else {
-    gravity = true;
-  }
-}
+void setup() {
+	simulation = false;
 
-void getParticles(int num) {
-  double x, y, z, w;
+	camera = Vector(0.0f, 0.0f, 0.0f);
 
-  for(int i = 0; i < num; i++) {
-    file >> x;
-    file >> y;
-    file >> z;
-    file >> w;
-    particles.push_back(Particle(Vector(x, y, z), w));
-  }
-}
-
-void getSprings(int num) {
-  int i, j;
-  double k, l;
-
-  file.get();
-
-  for(int a = 0; a < num; a++) {
-    file >> i;
-    file >> j;
-    file >> k;
-    file >> l;
-    springs.push_back(Spring(i, j, k, l));
-  }
+	glPointSize(5.0f);
 }
 
 void loadPoints() {
@@ -128,79 +98,46 @@ void loadPoints() {
 
 }
 
-void readFile(string filename) {
-  char title[256];
-  char mode;
-  int  amount;
-  int  stillParticle;
+void keyboardCallbacks(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	bool downPressed = false;
+	bool upPressed = false;
+	bool leftPressed = false;
+	bool rightPressed = false;
 
-  file.open(filename.c_str());
-
-  if(!file.is_open()) {
-    cout << "File couldn't be open" << endl;
-    exit(EXIT_FAILURE);
-  }
-
-  file.getline(title, 256);
-  windowName = string(title);
-
-  // get gravity setting
-  file >> mode;
-  if(mode == 'g') {
-    getGravity();
-  }
-  else {
-    cout << "No gravity setting" << endl;
-    exit(EXIT_FAILURE);
-  }
-
-  cout << "getting particles" << endl;
-  // get particles
-  file >> mode;
-  if(mode == 'p') {
-    file >> amount;
-    file >> stillParticle;
-    getParticles(amount);
-    /*if(stillParticle >= 0) {
-      particles[stillParticle].toggleMovement();
-	  particles[3].toggleMovement();
-	  particles[6].toggleMovement();
-	  particles[9].toggleMovement();
-    }*/
-
-		particles[0].toggleMovement();
-  }
-  else {
-    cout << "improper particle section" << endl;
-    exit(EXIT_FAILURE);
-  }
-
-  cout << "getting springs" << endl;
-  // get springs
-  file >> mode;
-  if(mode == 's') {
-    file >> amount;
-    getSprings(amount);
-  }
-  else {
-    cout << "improper spring section" << endl;
-    exit(EXIT_FAILURE);
-  }
-
-  file.close();
-  cout << "finished loading" << endl;
-}
-
-void init() {
-  simulation = false;
-
-  camera = Vector(0.0f, 0.0f, 0.0f);
-
-  glPointSize(5.0f);
+	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+		if (key == GLFW_KEY_ENTER) {
+			update();
+		}
+		if (key == GLFW_KEY_SPACE) {
+			simulation = !simulation;
+		}
+		if (key == GLFW_KEY_D) {
+			debug = !debug;
+		}
+		if (key == GLFW_KEY_G) {
+			gravity = !gravity;
+		}
+		if (key == GLFW_KEY_DOWN) {
+			downPressed = true;
+			upPressed = false;
+		}
+		else if (key == GLFW_KEY_UP) {
+			upPressed = true;
+			downPressed = false;
+		}
+		if (key == GLFW_KEY_LEFT) {
+			leftPressed = true;
+			rightPressed = false;
+		}
+		else if (key == GLFW_KEY_RIGHT) {
+			rightPressed = true;
+			leftPressed = false;
+		}
+	}
 }
 
 void update() {
-  Vector v1, v2, v3; // for dampening
+  Vector v1, v2, v3; 
   Particle *p1, *p2;
   Vector forceOverLength;
   Vector force;
@@ -219,52 +156,28 @@ void update() {
 	  distanceFromRest = (springLength - springs[i].getLength());
 	  
 	  hookesValue = -springs[i].getConstant() * distanceFromRest;
+	  
+	  springVector.normalize();
 
-    // check for length of 0
-    springVector.normalize();
-
-    // calculate force
 	  force = ((springVector * hookesValue));
 
-	  //p1->setForce(p1->getForce() + force);
 	  p2->setForce(p2->getForce() - force);
-
-    if(debug) {
-      cout << "gravity = " << gravity << endl;
-      cout << "v1 = ";
-      p1->getVelocity().print();
-      v1.print();
-      cout << "v2 = ";
-      p2->getVelocity().print();
-      v2.print();
-      cout << "v3 = ";
-      v3.print();
-      cout << "hooke value = " << hookesValue << endl;
-      cout << "dampening force = ";
-      dampeningForce.print();
-      cout << "springVector = ";
-      springVector.print();
-      cout << "Spring length = " << springLength << endl;
-      cout << "force = ";
-      force.print();
-    }
 	}
 
 	for(unsigned int i = 0; i < particles.size(); i++) {
-    if(!particles[i].isStationary()) {
-      if(gravity) {
-        particles[i].setForce(particles[i].getForce() + Vector(0.0f, -0.0081f, 0.0f) * particles[i].getMass());
-      }
-		  particles[i].setVelocity(particles[i].getVelocity() + (particles[i].getForce() / (particles[i].getMass() * timeStep)));
-		particles[i].setVelocity(particles[i].getVelocity() * damp);
-		  particles[i].setPosition(particles[i].getPosition() + (particles[i].getVelocity() * timeStep));
-		  particles[i].setForce(Vector(0.0f, 0.0f, 0.0f));
-    }
+		if(!particles[i].isStationary()) {
+			if(gravity) {
+				particles[i].setForce(particles[i].getForce() + Vector(0.0f, -0.0081f, 0.0f) * particles[i].getMass());
+			}
+			particles[i].setVelocity(particles[i].getVelocity() + (particles[i].getForce() / (particles[i].getMass() * timeStep)));
+			particles[i].setVelocity(particles[i].getVelocity() * damp);
+			particles[i].setPosition(particles[i].getPosition() + (particles[i].getVelocity() * timeStep));
+			particles[i].setForce(Vector(0.0f, 0.0f, 0.0f));
+		}
 	}
 }
 
 void render() {
-	
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -286,178 +199,124 @@ void render() {
 	glfwPollEvents();
 }
 
-void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	bool downPressed = false;
-	bool upPressed = false;
-	bool leftPressed = false;
-	bool rightPressed = false;
-
-	if(action == GLFW_PRESS || action == GLFW_REPEAT) {
-		if(key == GLFW_KEY_ENTER) {
-		update();
-    }
-    if(key == GLFW_KEY_SPACE) {
-		simulation = !simulation;
-    }
-    if(key == GLFW_KEY_D) {
-		debug = !debug;
-    }
-    if(key == GLFW_KEY_G) {
-		gravity = !gravity;
-    }
-    if(key == GLFW_KEY_DOWN) {
-		downPressed = true;
-		upPressed = false;
-    }
-    else if(key == GLFW_KEY_UP) {
-		upPressed = true;
-		downPressed = false;
-    }
-    if(key == GLFW_KEY_LEFT) {
-		leftPressed = true;
-		rightPressed = false;
-    }
-    else if(key == GLFW_KEY_RIGHT) {
-		rightPressed = true;
-		leftPressed = false;
-    }
-	/*
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		for (unsigned int i = 0; i < particles.size(); i++) {
-			if (i % pointsPerStrand == 0) {
-				Vector currPos = particles[i].getPosition();
-				Vector newPos = Vector(currPos.getX(), currPos.getY() - 0.04, currPos.getZ());
-				particles[i].setPosition(newPos);
-			}
-			else {
-				update();
-			}
-		}
-	}
-	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		for (unsigned int i = 0; i < particles.size(); i++) {
-			if (i % pointsPerStrand == 0) {
-				Vector currPos = particles[i].getPosition();
-				Vector newPos = Vector(currPos.getX(), currPos.getY() + 0.04, currPos.getZ());
-				particles[i].setPosition(newPos);
-			}
-			else {
-				update();
-			}
-		}
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		for (unsigned int i = 0; i < particles.size(); i++) {
-			if (i % pointsPerStrand == 0) {
-				Vector currPos = particles[i].getPosition();
-				Vector newPos = Vector(currPos.getX() - 0.04, currPos.getY(), currPos.getZ());
-				particles[i].setPosition(newPos);
-			}
-			else {
-				update();
-			}
-		}
-	}
-	else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		for (unsigned int i = 0; i < particles.size(); i++) {
-			if (i % pointsPerStrand == 0) {
-				Vector currPos = particles[i].getPosition();
-				Vector newPos = Vector(currPos.getX() + 0.04, currPos.getY(), currPos.getZ());
-				particles[i].setPosition(newPos);
-			}
-			else {
-				update();
-			}
-		}
-	}*/
-
-  }
-}
-
-int main(int argc, char **argv)
-{
-
-  //readFile(string(argv[1]));
-	loadPoints();
-
-	if(!glfwInit()) {
-    cout << "glfw failed to initialize" << endl;
-		exit(EXIT_FAILURE);
-	}
+int main(int argc, char **argv){
 	
-	window = glfwCreateWindow(width, height, windowName.c_str(), NULL, NULL);
-	if(!window) {
-    cout << "Window failed to be created" << endl;
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
+	setup();
+	loadPoints();
   
 	glfwMakeContextCurrent(window);
-	glfwSetKeyCallback(window, keyboardFunc);
-
-	init();
+	glfwSetKeyCallback(window, keyboardCallbacks);
   
 	while(!glfwWindowShouldClose(window)) {
-		counter++;
-    if(simulation) {
-      update();
-    }
+		if(simulation) {
+			update();
+		}
+		render();
 
-    render();
-
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		for (unsigned int i = 0; i < particles.size(); i++) {
-			if (i % pointsPerStrand == 0) {
-				Vector currPos = particles[i].getPosition();
-				Vector newPos = Vector(currPos.getX(), currPos.getY() - 0.01, currPos.getZ());
-				particles[i].setPosition(newPos);
+		//keyboard callbacks get called more often
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			for (unsigned int i = 0; i < particles.size(); i++) {
+				if (i % pointsPerStrand == 0) {
+					Vector currPos = particles[i].getPosition();
+					Vector newPos = Vector(currPos.getX(), currPos.getY() - 0.01, currPos.getZ());
+					particles[i].setPosition(newPos);
+				}
+				else {
+					update();
+				}
 			}
-			else {
-				update();
+		}
+		else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			for (unsigned int i = 0; i < particles.size(); i++) {
+				if (i % pointsPerStrand == 0) {
+					Vector currPos = particles[i].getPosition();
+					Vector newPos = Vector(currPos.getX(), currPos.getY() + 0.01, currPos.getZ());
+					particles[i].setPosition(newPos);
+				}
+				else {
+					update();
+				}
+			}
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+			for (unsigned int i = 0; i < particles.size(); i++) {
+				if (i % pointsPerStrand == 0) {
+					Vector currPos = particles[i].getPosition();
+					Vector newPos = Vector(currPos.getX() - 0.01, currPos.getY(), currPos.getZ());
+					particles[i].setPosition(newPos);
+				}
+				else {
+					update();
+				}
+			}
+		}
+		else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			for (unsigned int i = 0; i < particles.size(); i++) {
+				if (i % pointsPerStrand == 0) {
+					Vector currPos = particles[i].getPosition();
+					Vector newPos = Vector(currPos.getX() + 0.01, currPos.getY(), currPos.getZ());
+					particles[i].setPosition(newPos);
+				}
+				else {
+					update();
+				}
 			}
 		}
 	}
-	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		for (unsigned int i = 0; i < particles.size(); i++) {
-			if (i % pointsPerStrand == 0) {
-				Vector currPos = particles[i].getPosition();
-				Vector newPos = Vector(currPos.getX(), currPos.getY() + 0.01, currPos.getZ());
-				particles[i].setPosition(newPos);
-			}
-			else {
-				update();
-			}
-		}
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		for (unsigned int i = 0; i < particles.size(); i++) {
-			if (i % pointsPerStrand == 0) {
-				Vector currPos = particles[i].getPosition();
-				Vector newPos = Vector(currPos.getX() - 0.01, currPos.getY(), currPos.getZ());
-				particles[i].setPosition(newPos);
-			}
-			else {
-				update();
-			}
-		}
-	}
-	else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		for (unsigned int i = 0; i < particles.size(); i++) {
-			if (i % pointsPerStrand == 0) {
-				Vector currPos = particles[i].getPosition();
-				Vector newPos = Vector(currPos.getX() + 0.01, currPos.getY(), currPos.getZ());
-				particles[i].setPosition(newPos);
-			}
-			else {
-				update();
-			}
-		}
-	}
-  }
   
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	
 	return 0;
 }
+
+/*
+if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+for (unsigned int i = 0; i < particles.size(); i++) {
+if (i % pointsPerStrand == 0) {
+Vector currPos = particles[i].getPosition();
+Vector newPos = Vector(currPos.getX(), currPos.getY() - 0.04, currPos.getZ());
+particles[i].setPosition(newPos);
+}
+else {
+update();
+}
+}
+}
+else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+for (unsigned int i = 0; i < particles.size(); i++) {
+if (i % pointsPerStrand == 0) {
+Vector currPos = particles[i].getPosition();
+Vector newPos = Vector(currPos.getX(), currPos.getY() + 0.04, currPos.getZ());
+particles[i].setPosition(newPos);
+}
+else {
+update();
+}
+}
+}
+if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+for (unsigned int i = 0; i < particles.size(); i++) {
+if (i % pointsPerStrand == 0) {
+Vector currPos = particles[i].getPosition();
+Vector newPos = Vector(currPos.getX() - 0.04, currPos.getY(), currPos.getZ());
+particles[i].setPosition(newPos);
+}
+else {
+update();
+}
+}
+}
+else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+for (unsigned int i = 0; i < particles.size(); i++) {
+if (i % pointsPerStrand == 0) {
+Vector currPos = particles[i].getPosition();
+Vector newPos = Vector(currPos.getX() + 0.04, currPos.getY(), currPos.getZ());
+particles[i].setPosition(newPos);
+}
+else {
+update();
+}
+}
+}*/
 
