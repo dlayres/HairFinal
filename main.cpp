@@ -1,24 +1,3 @@
-/*
- * main.cpp
- * 
- * Written by: Sean Brown
- * 
- * Particle:
- * x, y, z - vectors of 3 (position
- * m - real number (mass)
- * 
- * Spring:
- * index i, j - integer (particles)
- * k - real number (spring constant)
- * l - real number (distance of rest state)
- * 
- * Force on particle p
- *   Fp = sum of forces connected to p
- * 
- * Force between particles
- *   Fp-pi = -spring.k(||p - pi|| - spring.l)(p - pi)/(||p - pi||)
- * 
- */
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -54,22 +33,19 @@ using namespace std;
 GLFWwindow* window;
 ifstream file;
 
-// flags
 bool debug = false;
 bool gravity;
 bool simulation;
 
-// settings
 double nearPlane  = 1.0f;
 double farPlane   = 1000.0f;
 double fov        = 60.0f;
 double damp       = 0.1;
-double timeStep   = 0.000000001f;
+double timeStep   = 0.0000001f;
 int counter = 0;
 
-int pointsPerStrand = 3;
+int pointsPerStrand = 15;
 
-// glfw info
 int width       = 1024;
 int height      = 768;
 string windowName;
@@ -80,7 +56,6 @@ vector<Spring> springs;
 
 void getGravity() {
   char input[256];
-
   file >> input;
   if(!string(input).compare(string("false"))) {
     gravity = false;
@@ -115,6 +90,41 @@ void getSprings(int num) {
     file >> l;
     springs.push_back(Spring(i, j, k, l));
   }
+}
+
+void loadPoints() {
+	int num_strands = 12;
+	int num_particles = 15;
+
+	double strand_spacing = 0.02;
+	double particle_weight = 5.0;
+
+	double spring_stiffness = 0.3;
+	double particle_spacing = 0.002;
+	double spring_length = 0.00000002;
+	double x = 0;
+	double y = 0.8;
+
+	for (int i = 0; i < num_strands; i++) {
+		y = 0.8;
+		spring_stiffness -= (num_particles/2)*.001;
+		for (int j = 0; j < num_particles; j++) {
+			if (j == 0) {
+				Particle p = Particle(Vector(x, y, -1.0), particle_weight);
+				p.toggleMovement();
+				particles.push_back(p);
+			} else {
+				particles.push_back(Particle(Vector(x, y, -1.0), particle_weight));
+			}
+			if (j != (num_particles - 1)) {
+				springs.push_back(Spring(i*num_particles + j, i*num_particles + j + 1, spring_stiffness, spring_length));
+				spring_stiffness += .001;
+			}
+			y -= particle_spacing;
+		}
+		x += strand_spacing;
+	}
+
 }
 
 void readFile(string filename) {
@@ -158,8 +168,6 @@ void readFile(string filename) {
     }*/
 
 		particles[0].toggleMovement();
-
-
   }
   else {
     cout << "improper particle section" << endl;
@@ -187,7 +195,7 @@ void init() {
 
   camera = Vector(0.0f, 0.0f, 0.0f);
 
-  glPointSize(10.0f);
+  glPointSize(5.0f);
 }
 
 void update() {
@@ -208,8 +216,8 @@ void update() {
 	  springVector = p1->getPosition() - p2->getPosition();
 	  springLength = springVector.length();
 	  distanceFromRest = (springLength - springs[i].getLength());
-    
-    hookesValue = -springs[i].getConstant() * distanceFromRest;
+	  
+	  hookesValue = -springs[i].getConstant() * distanceFromRest;
 
     // check for length of 0
     springVector.normalize();
@@ -217,7 +225,7 @@ void update() {
     // calculate force
 	  force = ((springVector * hookesValue));
 
-	  p1->setForce(p1->getForce() + force);
+	  //p1->setForce(p1->getForce() + force);
 	  p2->setForce(p2->getForce() - force);
 
     if(debug) {
@@ -247,91 +255,14 @@ void update() {
         particles[i].setForce(particles[i].getForce() + Vector(0.0f, -0.0081f, 0.0f) * particles[i].getMass());
       }
 		  particles[i].setVelocity(particles[i].getVelocity() + (particles[i].getForce() / (particles[i].getMass() * timeStep)));
-      particles[i].setVelocity(particles[i].getVelocity() * damp);
+		particles[i].setVelocity(particles[i].getVelocity() * damp);
 		  particles[i].setPosition(particles[i].getPosition() + (particles[i].getVelocity() * timeStep));
 		  particles[i].setForce(Vector(0.0f, 0.0f, 0.0f));
     }
 	}
 }
 
-/* my update
-void update() {
-
-
-	for (unsigned int i = 0; i < particles.size(); i++) {
-		if (!particles[i].isStationary()) {
-			//	if (gravity) {
-				//	particles[i].setForce(particles[i].getForce() + Vector(0.0f, -9.81f, 0.0f) * particles[i].getMass());
-				//}
-
-			Vector posChange = particles[i].getForce() / 5.0f;
-
-			cout << posChange.getX() << " " << posChange.getY() << " " << posChange.getZ() << endl;
-
-			particles[i].setPosition(particles[i].getPosition() + posChange);
-
-		}
-	}
-
-	for (unsigned int i = 0; i < springs.size(); i++) {
-		p1 = &particles[springs[i].getFirst()];
-		p2 = &particles[springs[i].getSecond()];
-
-		springVector = p1->getPosition() - p2->getPosition();
-		springLength = springVector.length();
-		distanceFromRest = (springLength - springs[i].getLength());
-
-		hookesValue = -springs[i].getConstant() * distanceFromRest;
-
-		// check for length of 0
-		springVector.normalize();
-
-		// calculate force
-		force = ((springVector * hookesValue));
-
-		p1->setForce(p1->getForce() + force);
-		p2->setForce(p2->getForce() - force);
-	}
-}
-*/
-
-void glhFrustumf2(float *matrix, float left, float right, float bottom, float top, float znear, float zfar) {
-	float temp, temp2, temp3, temp4;
-	temp = 2.0 * znear;
-	temp2 = right - left;
-	temp3 = top - bottom;
-	temp4 = zfar - znear;
-	matrix[0] = temp / temp2;
-	matrix[1] = 0.0;
-	matrix[2] = 0.0;
-	matrix[3] = 0.0;
-	matrix[4] = 0.0;
-	matrix[5] = temp / temp3;
-	matrix[6] = 0.0;
-	matrix[7] = 0.0;
-	matrix[8] = (right + left) / temp2;
-	matrix[9] = (top + bottom) / temp3;
-	matrix[10] = (-zfar - znear) / temp4;
-	matrix[11] = -1.0;
-	matrix[12] = 0.0;
-	matrix[13] = 0.0;
-	matrix[14] = (-temp * zfar) / temp4;
-	matrix[15] = 0.0;
-}
-
-void glhPerspectivef2(float *matrix, float fovyInDegrees, float aspectRatio,
-	float znear, float zfar)
-{
-	float ymax, xmax;
-	ymax = znear * tanf(fovyInDegrees * 3.1415 / 360.0);
-	//ymin = -ymax;
-	//xmin = -ymax * aspectRatio;
-	xmax = ymax * aspectRatio;
-	glhFrustumf2(matrix, -xmax, xmax, -ymax, ymax, znear, zfar);
-}
-
 void render() {
-	//CSCI441::drawSolidCube(5.0f);
 	
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -339,51 +270,34 @@ void render() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	float matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
-	
-	//gluPerspective(fov, height/width, nearPlane, farPlane);
-	//glhPerspectivef2(matrix, fov, height / width, nearPlane, farPlane);
-	//glLoadMatrixf(matrix);
-  //gluLookAt(camera.getX(), camera.getY(), camera.getZ(), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glPushMatrix();
+	glTranslatef(camera.getX(), camera.getY(), camera.getZ());
 
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glPushMatrix();
-  glTranslatef(camera.getX(), camera.getY(), camera.getZ());
+	for(unsigned int i = 0; i < springs.size(); i++) {
+  		springs[i].render(particles);
+	}
 
-  for(unsigned int i = 0; i < springs.size(); i++) {
-  	springs[i].render(particles);
-  }
+	glPopMatrix();
 
-  glPopMatrix();
-  glPushMatrix();
-
-  glTranslatef(5, 5, 5);
-  
-  glColor3f(1.0f, 0.0f, 0.0f);
-  GLUquadric *quad;
-  quad = gluNewQuadric();
-  gluDisk(quad, 500000.0f, 500000.0f, 20, 20);
-
-  glPopMatrix();
-
-  glfwSwapBuffers(window);
-  glfwPollEvents();
+	glfwSwapBuffers(window);
+	glfwPollEvents();
 }
 
 void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
-  if(action == GLFW_PRESS || action == GLFW_REPEAT) {
-    if(key == GLFW_KEY_ENTER) {
-      update();
+	if(action == GLFW_PRESS || action == GLFW_REPEAT) {
+		if(key == GLFW_KEY_ENTER) {
+		update();
     }
     if(key == GLFW_KEY_SPACE) {
-      simulation = !simulation;
+		simulation = !simulation;
     }
     if(key == GLFW_KEY_D) {
-      debug = !debug;
+		debug = !debug;
     }
     if(key == GLFW_KEY_G) {
-      gravity = !gravity;
+		gravity = !gravity;
     }
     if(key == GLFW_KEY_DOWN) {
 		for (unsigned int i = 0; i < particles.size(); i++) {
@@ -449,13 +363,9 @@ void keyboardFunc(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main(int argc, char **argv)
 {
-	
-  if(argc != 2) {
-    cout << "Need a file." << endl;
-    exit(EXIT_FAILURE);
-  }
 
-  readFile(string(argv[1]));
+  //readFile(string(argv[1]));
+	loadPoints();
 
 	if(!glfwInit()) {
     cout << "glfw failed to initialize" << endl;
@@ -470,13 +380,13 @@ int main(int argc, char **argv)
 	}
   
 	glfwMakeContextCurrent(window);
-  glfwSetKeyCallback(window, keyboardFunc);
+	glfwSetKeyCallback(window, keyboardFunc);
 
 	init();
   
 	while(!glfwWindowShouldClose(window)) {
 		counter++;
-    if(simulation && (counter % 10 == 0)) {
+    if(simulation) {
       update();
     }
 

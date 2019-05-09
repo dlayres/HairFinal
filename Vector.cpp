@@ -1,15 +1,4 @@
-/*
- * Vector class
- *  - represents Vector that forms the curve.
- *
- * From CPSC 589
- *
- * Sean Brown
- *
- */
-
-
- #include "Vector.h"
+#include "Vector.h"
 
 Vector::Vector() {
 
