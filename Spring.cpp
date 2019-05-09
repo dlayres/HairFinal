@@ -23,13 +23,13 @@ void Spring::render(std::vector<Particle> particles) {
 	particles[i].render();
 	particles[j].render();
 
-	Vector pi = particles[i].getPosition();
-	Vector pj = particles[j].getPosition();
+	Vector p_one = particles[i].getPosition();
+	Vector p_two = particles[j].getPosition();
 
 	glBegin(GL_LINES);
 	glColor3f(0.55f, 0.45f, 0.2f);
-	glVertex3f(pi.getX(), pi.getY(), pi.getZ());
-	glVertex3f(pj.getX(), pj.getY(), pj.getZ());
+	glVertex3f(p_one.getX(), p_one.getY(), p_one.getZ());
+	glVertex3f(p_two.getX(), p_two.getY(), p_two.getZ());
 	glEnd();
 }
 

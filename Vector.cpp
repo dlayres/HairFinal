@@ -10,24 +10,21 @@ Vector::Vector() {
  	this->z = z;
  }
 
- Vector Vector::operator*(double arg) {
- 	return Vector(this->x*arg, this->y*arg, this->z*arg);
+ double Vector::length() {
+	 return sqrt(x * x + y * y + z * z);
  }
 
- Vector Vector::operator+(Vector v) {
- 	return Vector(v.x + this->x, v.y + this->y, v.z + this->z);
- }
+ void Vector::normalize() {
+	 double len = this->length();
 
- Vector Vector::operator-(Vector v) {
- 	return Vector(v.x - this->x, v.y - this->y, v.z - this->z);
- }
- 
- Vector Vector::operator/(double arg) {
-   return Vector(this->x / arg, this->y / arg, this->z / arg);
- }
- 
- bool Vector::operator==(Vector x) {
-   return (x.getX() == this->x) && (x.getY() == this->y) && (x.getZ() == this->z);
+	 if (len == 0)
+		 return;
+
+	 if (x != 0 || y != 0 || z != 0) {
+		 this->x = x / len;
+		 this->y = y / len;
+		 this->z = z / len;
+	 }
  }
 
 double Vector::getX() {
@@ -54,36 +51,22 @@ void Vector::setZ(double z) {
 	this->z = z;
 }
 
-Vector Vector::crossProduct(Vector a, Vector b) {
-
-	double x = (a.y * b.y) - (a.z * b.z);
-	double y = (a.z * b.x) - (a.x * b.z);
-	double z = (a.x * b.y) - (a.y * b.x);
-
-	return Vector(x, y, z);
+Vector Vector::operator*(double arg) {
+	return Vector(this->x*arg, this->y*arg, this->z*arg);
 }
 
-double Vector::dotProduct(Vector a, Vector b) {
-	return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+Vector Vector::operator+(Vector v) {
+	return Vector(v.x + this->x, v.y + this->y, v.z + this->z);
 }
 
-double Vector::length() {
-	return sqrt(x * x + y * y + z * z);
+Vector Vector::operator-(Vector v) {
+	return Vector(v.x - this->x, v.y - this->y, v.z - this->z);
 }
 
-void Vector::normalize() {
-	double len = this->length();
-
-	if(len == 0)
-		return;
-
-	if(x != 0 || y != 0 || z != 0) {
-		this->x = x / len;
-		this->y = y / len;
-		this->z = z / len;
-	}
+Vector Vector::operator/(double arg) {
+	return Vector(this->x / arg, this->y / arg, this->z / arg);
 }
 
-void Vector::print() {
-  printf("%.2f %.2f %.2f\n", x, y, z);
+bool Vector::operator==(Vector x) {
+	return (x.getX() == this->x) && (x.getY() == this->y) && (x.getZ() == this->z);
 }

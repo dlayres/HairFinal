@@ -1,15 +1,6 @@
  #ifndef _VECTOR_H_
  #define _VECTOR_H_
 
-/*
- * vector class
- *
- * From CPSC 589
- *
- * Sean Brown
- *
- */
-
  #include <math.h>
  #include <stdio.h>
 
@@ -22,28 +13,24 @@ public:
 	Vector();
 	Vector(double, double, double);
 
+	//overrides to make things easier
 	Vector operator*(double);
 	Vector operator+(Vector);
 	Vector operator-(Vector);
   	Vector operator/(double);
   	bool   operator==(Vector);
 
+	//getters/setters
 	double getX();
 	double getY();
 	double getZ();
-
 	void setX(double);
 	void setY(double);
 	void setZ(double);
 
-	static Vector crossProduct(Vector, Vector);
-	static double dotProduct(Vector, Vector);
-
+	//get magnitude & normalize helper functions
 	double length();
 	void normalize();
-  
-	void print();
-
 };
 
 #endif

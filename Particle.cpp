@@ -8,31 +8,13 @@
 #include "Particle.h"
 
 
-Particle::Particle() {// defaults: color = white, mass = 1.0f, pos = (0, 0, 0)
+Particle::Particle() {
   this->stationary = false;
 	this->pos = Vector(0.0f, 0.0f, 0.0f);
 	this->velocity = Vector(0.0f, 0.0f, 0.0f);
 	this->color = Vector(0.55f, 0.45f, 0.2f);
 	this->force = Vector(0.0f, 0.0f, 0.0f);
 	this->mass = 1.0f;
-}
-  
-Particle::Particle(Vector p) {
-  this->stationary = false;
-	this->pos = p;
-	this->velocity = Vector(0.0f, 0.0f, 0.0f);
-	this->color = Vector(0.55f, 0.45f, 0.2f);
-	this->force = Vector(0.0f, 0.0f, 0.0f);
-	this->mass = 1.0f;
-}
-
-Particle::Particle(Vector p, Vector c){
-  this->stationary = false;
-	this->pos = p;
-	this->velocity = Vector(0.0f, 0.0f, 0.0f);
-	this->force = Vector(0.0f, 0.0f, 0.0f);
-	this->mass = 1.0f;
-	this->color = Vector(0.55f, 0.45f, 0.2f);
 }
   
 Particle::Particle(Vector p, double m) {
@@ -42,15 +24,6 @@ Particle::Particle(Vector p, double m) {
 	this->color = Vector(0.55f, 0.45f, 0.2f);
 	this->force = Vector(0.0f, 0.0f, 0.0f);
 	this->mass = m;
-}
-
-Particle::Particle(Vector p, Vector c, double m) {
-  this->stationary = false;
-	this->pos = p;
-	this->velocity = Vector(0.0f, 0.0f, 0.0f);
-	this->force = Vector(0.0f, 0.0f, 0.0f);
-	this->mass = m;
-	this->color = Vector(0.55f, 0.45f, 0.2f);
 }
 
 void Particle::render() {
@@ -74,10 +47,6 @@ Vector Particle::getPosition() {
 
 Vector Particle::getVelocity() {
 	return this->velocity;
-}
-
-Vector Particle::getColor() {
-	return this->color;
 }
 
 Vector Particle::getForce() {
